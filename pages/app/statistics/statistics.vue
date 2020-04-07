@@ -12,9 +12,9 @@
 			<canvas canvas-id="canvasPie" id="canvasPie" class="charts" @touchstart="touchPie"></canvas>
 			<!--#endif-->
 		</view>
-		<view>
+		<!-- 	<view>
 			<button class="cu-btn round bg-gradual-blue" @click="getServerData">刷新</button>
-		</view>
+		</view> -->
 
 	</view>
 </template>
@@ -42,6 +42,9 @@
 				textarea: '',
 				expenditureSum: 0, //总支出
 			}
+		},
+		onShow() {
+			_self.getServerData();
 		},
 		onLoad() {
 			_self = this;

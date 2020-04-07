@@ -1,6 +1,6 @@
 <template>
 	<view>
-		<scroll-view scroll-x class="bg-gradual-green nav text-center">
+		<scroll-view scroll-x class="bg-yellow nav text-center">
 			<view class="cu-item" :class="0==tabCur?'text-white cur':''" @tap="tabSelect" data-id="0">
 				支出
 			</view>
@@ -104,27 +104,27 @@
 				expenditureListIconList: [{
 						url: '/static/bookeepingIcon/吃喝.png',
 						url1: '/static/bookeepingIcon/吃喝 (1).png',
-						text: '食野'
+						text: '食嘢'
 					},
 					{
 						url: '/static/bookeepingIcon/玩乐.png',
 						url1: '/static/bookeepingIcon/玩乐 (1).png',
-						text: '嗨皮'
+						text: '聚会'
 					},
 					{
 						url: '/static/bookeepingIcon/衣服.png',
 						url1: '/static/bookeepingIcon/衣服 (1).png',
-						text: '衫裤鞋袜'
+						text: '装身'
 					},
 					{
 						url: '/static/bookeepingIcon/米.png',
 						url1: '/static/bookeepingIcon/米 (1).png',
-						text: '柴米盐油'
+						text: '琳审'
 					},
 					{
 						url: '/static/bookeepingIcon/孩子.png',
 						url1: '/static/bookeepingIcon/孩子 (1).png',
-						text: '养细路'
+						text: '仔囡'
 					},
 					{
 						url: '/static/bookeepingIcon/化妆品.png',
@@ -139,7 +139,7 @@
 					{
 						url: '/static/bookeepingIcon/红包.png',
 						url1: '/static/bookeepingIcon/红包 (1).png',
-						text: '利时'
+						text: '利是'
 					},
 					{
 						url: '/static/bookeepingIcon/医疗.png',
@@ -149,10 +149,9 @@
 					{
 						url: '/static/bookeepingIcon/水电图.png',
 						url1: '/static/bookeepingIcon/水电图 (1).png',
-						text: '灯油火蜡'
+						text: '水电'
 					},
 				],
-
 			}
 		},
 		methods: {
