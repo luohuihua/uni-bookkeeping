@@ -168,11 +168,13 @@
 					});
 					return;
 				}
-
+				let expenditureListIcon = _self.expenditureListIconList[_self.activeIndex];
 				callCloudFunction('money_add', {
 					openid: getUserOpenid(),
 					money: moneyNumber,
-					type: _self.expenditureListIconList[_self.activeIndex].text,
+					type: expenditureListIcon.text,
+					url: expenditureListIcon.url,
+					url1: expenditureListIcon.url1
 				}, (res) => {
 					uni.showToast({
 						icon: "none",

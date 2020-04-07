@@ -33,6 +33,9 @@
 		}, {
 			"path": "pages/app/statistics/statistics",
 			"style": {}
+		}, {
+			"path": "pages/app/detailed/detailed",
+			"style": {}
 		}
 	],
 	"globalStyle": {
@@ -48,17 +51,24 @@
 		"color": "#333333",
 		"backgroundColor": "#F8F8F8",
 		"selectedColor": "#00B26A",
-		"list": [{
+		"list": [
+			{
+				"pagePath": "pages/app/bookkeeping/bookkeeping",
+				"text": "记数薄",
+				"iconPath": "static/images/tabbar/bookkeeping.png",
+				"selectedIconPath": "static/images/tabbar/bookkeeping-act.png"
+			},
+			{
 				"pagePath": "pages/app/statistics/statistics",
 				"text": "统计",
 				"iconPath": "static/images/tabbar/statistics.png",
 				"selectedIconPath": "static/images/tabbar/statistics-act.png"
 			},
 			{
-				"pagePath": "pages/app/bookkeeping/bookkeeping",
-				"text": "记数薄",
-				"iconPath": "static/images/tabbar/bookkeeping.png",
-				"selectedIconPath": "static/images/tabbar/bookkeeping-act.png"
+				"pagePath": "pages/app/detailed/detailed",
+				"text": "明细",
+				"iconPath": "static/images/tabbar/detailed.png",
+				"selectedIconPath": "static/images/tabbar/detailed-act.png"
 			},
 			{
 				"pagePath": "pages/user/index",
