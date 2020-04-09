@@ -15,6 +15,15 @@
 		<!-- 	<view>
 			<button class="cu-btn round bg-gradual-blue" @click="getServerData">刷新</button>
 		</view> -->
+		<br>
+		<view class="cu-form-group">
+			<view class="title">日期</view>
+			<picker mode="date" :value="date" fields="month" @change="dateChange">
+				<view class="picker">
+					{{date}}
+				</view>
+			</picker>
+		</view>
 
 	</view>
 </template>
@@ -41,6 +50,7 @@
 				pixelRatio: 1,
 				textarea: '',
 				expenditureSum: 0, //总支出
+				date: ''
 			}
 		},
 		onShow() {
@@ -48,6 +58,16 @@
 		},
 		onLoad() {
 			_self = this;
+			var myDate = new Date();
+			var year = myDate.getFullYear();
+			var month = myDate.getMonth();
+			var m = month + 1;
+			if (m.toString().length == 1) {
+				m = "0" + m;
+			}
+			_self.date = year + '-' + m;
+
+
 			//#ifdef MP-ALIPAY
 			uni.getSystemInfo({
 				success: function(res) {
@@ -65,9 +85,13 @@
 		},
 		methods: {
 			getServerData() {
-
+				let yms = _self.date.split('-');
+				let startDay = 2; //本月第一日
+				let endDay = new Date(yms[0], yms[1], 0).getDate(); // 本月最后一天
 				callCloudFunction('money_query', {
 					openid: getUserOpenid(),
+					startDate: new Date(yms[0], new Number(yms[1]) - 1, startDay, 0, 0, 0),
+					endDate: new Date(yms[0], new Number(yms[1]) - 1, endDay, 23, 59, 59)
 				}, (res) => {
 					let Pie = {
 						series: []
@@ -176,7 +200,15 @@
 						image: '../../../static/images/alert-warning.png'
 					})
 				}
-			}
+			},
+			/**
+			 * 日期选择变更
+			 */
+			dateChange(event) {
+				_self.date = event.detail.value;
+				_self.getServerData();
+			},
+
 		}
 	}
 </script>
