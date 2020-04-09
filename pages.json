@@ -1,14 +1,14 @@
 {
 	"pages": [{
+			"path": "pages/app/bookkeeping/bookkeeping",
+			"style": {}
+		},
+		{
 			"path": "pages/user/login",
 			"style": {
 				"navigationBarTitleText": "登录",
 				"navigationBarTextStyle": "black"
 			}
-		},
-		{
-			"path": "pages/app/bookkeeping/bookkeeping",
-			"style": {}
 		},
 		{
 			"path": "pages/app/index",
@@ -51,8 +51,7 @@
 		"color": "#333333",
 		"backgroundColor": "#F8F8F8",
 		"selectedColor": "#00B26A",
-		"list": [
-			{
+		"list": [{
 				"pagePath": "pages/app/bookkeeping/bookkeeping",
 				"text": "记数薄",
 				"iconPath": "static/images/tabbar/bookkeeping.png",

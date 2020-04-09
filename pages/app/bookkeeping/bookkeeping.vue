@@ -233,6 +233,14 @@
 		onLoad(option) {
 			_self = this;
 			_self.option = option;
+
+			let userInfo = uni.getStorageSync('userInfo');
+			if (userInfo == null || userInfo == '' || userInfo.openid == null) {
+				//没登录情况
+				uni.navigateTo({
+					url: '/pages/user/login'
+				});
+			}
 		},
 	}
 </script>

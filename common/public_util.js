@@ -7,7 +7,7 @@ module.exports = {
 	 */
 	callCloudFunction: (name, data, successFun, failFun) => {
 		uni.showLoading({
-			title: ''
+			title: '加载中...'
 		});
 		uniCloud.callFunction({
 			name: name,

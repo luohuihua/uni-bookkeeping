@@ -1,11 +1,17 @@
 <template>
 	<view style="padding-top: 40upx;">
 		<view class="inputArea" style="text-align: center;">
-			<image class="logo-img" src="../../static/images/avatar.png"></image>
+			<image class="logo-img" src="/static/images/money.png"></image>
+		</view>
+		<view class="text-xl padding text-center">
+			<text class="text-black text-bold">记数簿</text>
+		</view>
+		<view class="text-s padding text-center">
+			<text class="text-gray">家常记账，知悭识俭</text>
 		</view>
 
 		<view class="inputArea">
-			<button class="login-button" open-type="getUserInfo" @getuserinfo="goLogin">授权登录</button>
+			<button class="login-button bg-gradual-orange" open-type="getUserInfo" @getuserinfo="goLogin">翻开记数簿</button>
 		</view>
 	</view>
 </template>
@@ -25,15 +31,15 @@
 		},
 		onLoad() {
 			_self = this;
-			let userInfo = uni.getStorageSync('userInfo');
-			if (userInfo != null && userInfo.openid != null) {
-				console.log('用户信息:' + JSON.stringify(userInfo));
-				uni.switchTab({
-					url: '/pages/app/bookkeeping/bookkeeping'
-				});
-			}else{
-				_self.getUserInfo();
-			}
+			// let userInfo = uni.getStorageSync('userInfo');
+			// if (userInfo != null && userInfo.openid != null) {
+			// 	console.log('用户信息:' + JSON.stringify(userInfo));
+			// 	uni.switchTab({
+			// 		url: '/pages/app/bookkeeping/bookkeeping'
+			// 	});
+			// }else{
+			// 	_self.getUserInfo();
+			// }
 		},
 		methods: {
 			goLogin() {
@@ -77,41 +83,14 @@
 										url: '/pages/app/bookkeeping/bookkeeping'
 									});
 								});
-								// let appid = 'wxdf8fb6be9c8922e2';
-								// //小程序secret
-								// let secret = '6359a58b6eecfc8f37e6a13feaa548b9';
-								// //wx接口路径
-								// let url = 'https://api.weixin.qq.com/sns/jscode2session?appid=' + appid + '&secret=' + secret +
-								// 	'&js_code=' +
-								// 	loginRes.code + '&grant_type=authorization_code';
-								// uni.request({
-								// 	url: url, // 请求路径
-								// 	data: {}, // 请求体  注:在这里不需要写,有没有无所谓
-								// 	method: 'GET', //请求方式,
-								// 	header: '', //请求头  注:在这里不需要写,有没有无所谓
-								// 	success: result => {
-								// 		uni.hideLoading();
-								// 		//获取到openid
-								// 		let openid = result.data.openid;
-								// 		let userInfo = infoRes.userInfo;
-								// 		userInfo.openid = openid;
-								// 		uni.setStorageSync('userInfo', userInfo);
-								// 		callCloudFunction('user_add', userInfo, (res) => {
-								// 			console.log('云函数返回:' + JSON.stringify(res));
-								// 		});
-								// 		console.log('用户信息:' + JSON.stringify(userInfo));
-								// 		uni.switchTab({
-								// 			url: '/pages/app/bookkeeping/bookkeeping'
-								// 		});
-								// 	},
-								// 	fail: err => {
-								// 		uni.hideLoading();
-								// 	} //失败
-								// });
+
 							},
 							fail: (fail) => {
 								uni.hideLoading();
-								console.log(JSON.stringify(fail));
+								uni.showToast({
+									icon: "none",
+									title: '翻开记数簿要允许授权'
+								});
 							}
 						});
 					},
@@ -146,7 +125,7 @@
 	}
 
 	.login-button {
-		background: #2fc25b;
+		/* background: #2fc25b; */
 		color: #FFFFFF;
 		border-radius: 54upx;
 		font-size: 36upx;
