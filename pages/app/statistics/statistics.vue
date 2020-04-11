@@ -1,7 +1,7 @@
 <template>
 	<view class="qiun-columns">
-		<view class="qiun-bg-white qiun-title-bar qiun-common-mt">
-			<view class="qiun-title-dot-light">统计情况,总支出:{{expenditureSum}}元</view>
+		<view class="qiun-bg-white qiun-title-bar qiun-common-mt" style="width: 100%;">
+			<view class="qiun-title-dot-light">月统计情况:总支出:{{expenditureSum}}元</view>
 		</view>
 		<view class="qiun-charts">
 			<!--#ifdef MP-ALIPAY -->
@@ -24,7 +24,18 @@
 				</view>
 			</picker>
 		</view>
-
+		<view class="qiun-bg-white qiun-title-bar qiun-common-mt" style="width: 100%;">
+			<view class="qiun-title-dot-light">日统计情况:总支出:{{daySum}}元</view>
+		</view>
+		<view class="qiun-charts">
+			<!--#ifdef MP-ALIPAY -->
+			<canvas canvas-id="dayPie" id="dayPie" class="charts" :width="cWidth*pixelRatio" :height="cHeight*pixelRatio" :style="{'width':cWidth+'px','height':cHeight+'px'}"
+			 @touchstart="touchDayPie"></canvas>
+			<!--#endif-->
+			<!--#ifndef MP-ALIPAY -->
+			<canvas canvas-id="dayPie" id="dayPie" class="charts" @touchstart="touchDayPie"></canvas>
+			<!--#endif-->
+		</view>
 	</view>
 </template>
 
@@ -40,17 +51,20 @@
 	} from '@/common/public_util.js';
 
 	var _self;
-	var canvaPie = null;
+	let canvaPie = null; //月统计
+	let dayPie = null; //日统计
 
 	export default {
 		data() {
 			return {
 				cWidth: '',
 				cHeight: '',
-				pixelRatio: 1,
 				textarea: '',
+				dayTextarea: '',
 				expenditureSum: 0, //总支出
-				date: ''
+				daySum: 0, //日总支出
+				date: '',
+				pixelRatio: 1,
 			}
 		},
 		onShow() {
@@ -85,14 +99,64 @@
 		},
 		methods: {
 			getServerData() {
+
+				//日统计
+				let dayDate = new Date();
+				callCloudFunction('money_query', {
+					openid: getUserOpenid(),
+					startDate: new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate(), 0, 0, 0),
+					endDate: new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate(), 23, 59, 59)
+				}, (dayRes) => {
+					if (dayRes.data == null)
+						return;
+					let Pie = {
+						series: []
+					};
+					let series = [];
+
+					let sum = 0; //总数
+					let typeMap = {};
+					dayRes.data.forEach((data) => {
+						let type = data['type'];
+						let money = new Number(data['money']);
+						let moneySum = typeMap[type];
+						if (moneySum == null || moneySum <= 0) {
+							moneySum = money;
+						} else {
+							moneySum += money;
+						}
+						sum += money;
+						typeMap[type] = moneySum;
+					});
+					for (let key in typeMap) {
+						let serie = {
+							name: key,
+							data: typeMap[key]
+						};
+						series.push(serie);
+					}
+					_self.daySum = sum.toFixed(2);
+
+					Pie.series = series;
+					_self.textarea = JSON.stringify({
+						series: series
+					});
+					_self.showPie("dayPie", Pie);
+
+				});
+
+
+				//月统计
 				let yms = _self.date.split('-');
-				let startDay = 2; //本月第一日
+				let startDay = 1; //本月第一日
 				let endDay = new Date(yms[0], yms[1], 0).getDate(); // 本月最后一天
 				callCloudFunction('money_query', {
 					openid: getUserOpenid(),
 					startDate: new Date(yms[0], new Number(yms[1]) - 1, startDay, 0, 0, 0),
 					endDate: new Date(yms[0], new Number(yms[1]) - 1, endDay, 23, 59, 59)
 				}, (res) => {
+					if (res.data == null)
+						return;
 					let Pie = {
 						series: []
 					};
@@ -128,54 +192,67 @@
 					_self.showPie("canvasPie", Pie);
 				});
 
-				// uni.request({
-				// 	url: 'https://www.ucharts.cn/data.json',
-				// 	data: {},
-				// 	success: function(res) {
-				// 		let Pie = {
-				// 			series: []
-				// 		};
-				// 		//这里我后台返回的是数组，所以用等于，如果您后台返回的是单条数据，需要push进去
-				// 		console.log(res.data.data.Pie.series);
-				// 		console.log(res.data.data.Pie);
 
-				// 		Pie.series = res.data.data.Pie.series;
-				// 		_self.textarea = JSON.stringify(res.data.data.Pie);
-				// 		_self.showPie("canvasPie", Pie);
-				// 	},
-				// 	fail: () => {
-				// 		_self.tips = "网络错误，小程序端请检查合法域名";
-				// 	},
-				// });
 			},
 			showPie(canvasId, chartData) {
-				canvaPie = new uCharts({
-					$this: _self,
-					canvasId: canvasId,
-					type: 'pie',
-					fontSize: 11,
-					padding: [15, 15, 0, 15],
-					legend: {
-						show: true,
-						padding: 5,
-						lineHeight: 11,
-						margin: 0,
-					},
-					background: '#FFFFFF',
-					pixelRatio: _self.pixelRatio,
-					series: chartData.series,
-					animation: true,
-					width: _self.cWidth * _self.pixelRatio,
-					height: _self.cHeight * _self.pixelRatio,
-					dataLabel: true,
-					extra: {
-						pie: {
-							border: true,
-							borderColor: '#FFFFFF',
-							borderWidth: 3
-						}
-					},
-				});
+				if (canvasId == 'canvasPie') {
+					canvaPie = new uCharts({
+						$this: _self,
+						canvasId: canvasId,
+						type: 'pie',
+						fontSize: 11,
+						padding: [15, 15, 0, 15],
+						legend: {
+							show: true,
+							padding: 5,
+							lineHeight: 11,
+							margin: 0,
+						},
+						background: '#FFFFFF',
+						pixelRatio: _self.pixelRatio,
+						series: chartData.series,
+						animation: true,
+						width: _self.cWidth * _self.pixelRatio,
+						height: _self.cHeight * _self.pixelRatio,
+						dataLabel: true,
+						extra: {
+							pie: {
+								border: true,
+								borderColor: '#FFFFFF',
+								borderWidth: 3
+							}
+						},
+					});
+				} else if (canvasId == 'dayPie') {
+					dayPie = new uCharts({
+						$this: _self,
+						canvasId: canvasId,
+						type: 'pie',
+						fontSize: 11,
+						padding: [15, 15, 0, 15],
+						legend: {
+							show: true,
+							padding: 5,
+							lineHeight: 11,
+							margin: 0,
+						},
+						background: '#FFFFFF',
+						pixelRatio: _self.pixelRatio,
+						series: chartData.series,
+						animation: true,
+						width: _self.cWidth * _self.pixelRatio,
+						height: _self.cHeight * _self.pixelRatio,
+						dataLabel: true,
+						extra: {
+							pie: {
+								border: true,
+								borderColor: '#FFFFFF',
+								borderWidth: 3
+							}
+						},
+					});
+				}
+
 			},
 			touchPie(e) {
 				canvaPie.showToolTip(e, {
@@ -187,20 +264,17 @@
 					animation: true
 				});
 			},
-			changeData() {
-				if (isJSON(_self.textarea)) {
-					let newdata = JSON.parse(_self.textarea);
-					canvaPie.updateData({
-						series: newdata.series,
-						categories: newdata.categories
-					});
-				} else {
-					uni.showToast({
-						title: '数据格式错误',
-						image: '../../../static/images/alert-warning.png'
-					})
-				}
+			touchDayPie(e) {
+				dayPie.showToolTip(e, {
+					format: function(item) {
+						return item.name + ':' + item.data
+					}
+				});
+				dayPie.touchLegend(e, {
+					animation: true
+				});
 			},
+
 			/**
 			 * 日期选择变更
 			 */
