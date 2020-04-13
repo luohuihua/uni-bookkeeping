@@ -16,11 +16,17 @@
 					<text class="navigat-arrow">&#xe65e;</text>
 				</view>
 			</navigator>
+			<view class="center-list-item" @click="logOff()">
+				<text class="list-icon">&#xe60f;</text>
+				<text class="list-text">注销</text>
+				<text class="navigat-arrow">&#xe65e;</text>
+			</view>
 		</view>
 	</view>
 </template>
 
 <script>
+	let _self;
 	export default {
 		data() {
 			return {
@@ -30,19 +36,46 @@
 			}
 		},
 		onLoad() {
+			_self = this;
+		},
+		onShow() {
 			let userinfo = uni.getStorageSync('userInfo');
 			if (userinfo) {
-				this.login = true;
-				this.uerInfo = userinfo;
+				_self.login = true;
+				_self.uerInfo = userinfo;
 			}
 		},
 		methods: {
 			goLogin() {
-				if (!this.login) {
+				if (!_self.login) {
 					uni.navigateTo({
 						url: '/pages/user/login'
 					});
+				} else {
+					_self.logOff();
 				}
+			},
+			/**
+			 * 注销
+			 */
+			logOff() {
+				uni.showModal({
+					title: '确认操作',
+					content: '是否退出登录?',
+					showCancel: true,
+					success: (res) => {
+						if (res.confirm) {
+							uni.setStorageSync('userInfo', null);
+							_self.login = false;
+							_self.uerInfo = null;
+							uni.navigateTo({
+								url: '/pages/user/login'
+							});
+						} else if (res.cancel) {
+
+						}
+					}
+				});
 			},
 			gourl(url) {
 				if (this.login) {

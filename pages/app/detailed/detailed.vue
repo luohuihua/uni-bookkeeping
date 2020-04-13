@@ -2,18 +2,19 @@
 	<view>
 		<view class="cu-bar bg-white solid-bottom">
 			<view class='action'>
-				<text class='cuIcon-title text-blue'></text>明细清单,左滑删除
+				<text class='cuIcon-title text-blue'></text>明细清单,左滑更多操作
 			</view>
 		</view>
 		<!-- 按组使用 -->
 		<uni-swipe-action>
-			<uni-swipe-action-item :options="options" @click="onClick(item)" @change="change" v-for="(item,index) in datas" :key="index">
-				<view class="cu-bar solid-bottom action">
+			<uni-swipe-action-item :options="options" @click="onClick($event,item)" @change="change" v-for="(item,index) in datas"
+			 :key="index">
+				<view class="cu-bar solid-bottom action" style="padding-left: 10px;">
 					<!-- <uni-icons :type="item.name" :color="activeIndex === index?'#007aff':'#8f8f94'" size="25" /> -->
 					<image :src="item.url1" class="image" />
 					<text style="color:#1296db;" class="icon-item-text">{{ item.type }}</text>
-					<text style="color:#1296db;" class="icon-item-text">{{ item.formatDate }}</text>
-					<view class="solid-bottom padding">
+					<text style="color:#1296db;padding-left: 10px;" class="icon-item-text">{{ item.formatDate }}</text>
+					<view class="solid-bottom padding" style="padding-left: 10px;">
 						<text class="text-price">{{item.money}}</text>
 					</view>
 				</view>
@@ -44,11 +45,18 @@
 		data() {
 			return {
 				options: [{
-					text: '删除',
-					style: {
-						backgroundColor: '#dd524d'
-					}
-				}],
+						text: '修改',
+						style: {
+							backgroundColor: '#007dd5'
+						}
+					},
+					{
+						text: '删除',
+						style: {
+							backgroundColor: '#dd524d'
+						}
+					},
+				],
 				datas: [],
 				isShowLoadMore: false, //是否显示上啦加载
 				loadMoreStatus: 'more', //上啦加载状态，more加载前，loading加载中，noMore没有更多
@@ -68,19 +76,30 @@
 			_self.onQuery();
 		},
 		methods: {
-			onClick(item, e) {
-				callCloudFunction('money_del', item, (res) => {
-					uni.showToast({
-						icon: "none",
-						title: '操作成功',
-						duration: 2000
-					});
-					callCloudFunction('money_query', {
-						openid: getUserOpenid(),
-					}, (res) => {
-						_self.datas = res.data;
-					});
-				});
+			onClick(e, item) {
+				switch (e.index) {
+					case 0: //修改
+						uni.setStorageSync('modifyDetailed',item);
+						uni.switchTab({
+							url: '/pages/app/bookkeeping/bookkeeping'
+						});
+						break;
+					case 1: //删除
+						callCloudFunction('money_del', item, (res) => {
+							uni.showToast({
+								icon: "none",
+								title: '操作成功',
+								duration: 2000
+							});
+							callCloudFunction('money_query', {
+								openid: getUserOpenid(),
+							}, (res) => {
+								_self.datas = res.data;
+							});
+						});
+						break;
+				}
+
 			},
 			change(open) {
 				console.log('当前开启状态：' + open)

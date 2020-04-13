@@ -67,7 +67,7 @@
 <script>
 	import {
 		callCloudFunction,
-		getUserOpenid
+		getUserInfo
 	} from '@/common/public_util.js';
 
 	let _self;
@@ -91,6 +91,8 @@
 		},
 		data() {
 			return {
+				option: {}, //参数
+				id: null,
 				money: '0.00', //金额
 				numKeybordList: [
 					[1, 2, 3],
@@ -151,6 +153,16 @@
 						url1: '/static/bookeepingIcon/水电图 (1).png',
 						text: '水电'
 					},
+					{
+						url: '/static/bookeepingIcon/贷款.png',
+						url1: '/static/bookeepingIcon/贷款 (1).png',
+						text: '贵利'
+					},
+					{
+						url: '/static/bookeepingIcon/养车.png',
+						url1: '/static/bookeepingIcon/养车 (1).png',
+						text: '养车'
+					},
 				],
 			}
 		},
@@ -168,18 +180,30 @@
 					return;
 				}
 				let expenditureListIcon = _self.expenditureListIconList[_self.activeIndex];
+				let userInfo = getUserInfo();
 				callCloudFunction('money_add', {
-					openid: getUserOpenid(),
+					id: _self.id == null ? '' : _self.id,
+					openid: userInfo.openid,
+					nickName: userInfo.nickName,
 					money: moneyNumber,
 					type: expenditureListIcon.text,
 					url: expenditureListIcon.url,
 					url1: expenditureListIcon.url1
 				}, (res) => {
-					uni.showToast({
-						icon: "none",
-						title: '记录成功',
-						duration: 2000
-					});
+					if (_self.id == null || _self.id == '') {
+						uni.showToast({
+							icon: "none",
+							title: '记录成功',
+							duration: 2000
+						});
+					} else {
+						uni.showToast({
+							icon: "none",
+							title: '修改成功',
+							duration: 2000
+						});
+						_self.id = null;
+					}
 					_self.money = '0.00';
 				}, (fail) => {
 					uni.showToast({
@@ -240,8 +264,29 @@
 				uni.navigateTo({
 					url: '/pages/user/login'
 				});
+				return;
 			}
 		},
+		onShow() {
+			let modifyDetailed = uni.getStorageSync('modifyDetailed');
+			if (modifyDetailed != null && modifyDetailed._id != null) {
+				_self.id = modifyDetailed._id;
+				_self.money = modifyDetailed.money.toString();
+				let type = modifyDetailed.type;
+				let activeIndex = 0;
+				_self.expenditureListIconList.forEach((item, index) => {
+					if (type == item.text)
+						activeIndex = index;
+				});
+				_self.activeIndex = activeIndex;
+			} else {
+				_self.id = null;
+				_self.money = '0.00';
+			}
+
+			uni.setStorageSync('modifyDetailed', null);
+		}
+
 	}
 </script>
 
