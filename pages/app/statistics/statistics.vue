@@ -1,17 +1,44 @@
 <template>
 	<view class="qiun-columns">
-		<view class="qiun-bg-white qiun-title-bar qiun-common-mt" style="width: 100%;">
-			<view class="qiun-title-dot-light">月统计情况:总支出:{{expenditureSum}}元</view>
+		<scroll-view scroll-x class="bg-yellow nav text-center">
+			<view class="cu-item" :class="0==tabCur?'text-white cur':''" @tap="tabSelect" data-id="0">
+				<text class="cuIcon-triangleupfill"></text> 支出
+			</view>
+			<view class="cu-item" :class="1==tabCur?'text-white cur':''" @tap="tabSelect" data-id="1">
+				<text class="cuIcon-triangledownfill"></text> 收入
+			</view>
+		</scroll-view>
+
+
+		<view v-if="tabCur==0">
+			<view class="qiun-bg-white qiun-title-bar qiun-common-mt" style="width: 100%;">
+				<view class="qiun-title-dot-light">月统计情况:总支出:{{expenditureSum}}元</view>
+			</view>
+			<view class="qiun-charts">
+				<!--#ifdef MP-ALIPAY -->
+				<canvas canvas-id="canvasPie" id="canvasPie" class="charts" :width="cWidth*pixelRatio" :height="cHeight*pixelRatio"
+				 :style="{'width':cWidth+'px','height':cHeight+'px'}" @touchstart="touchPie"></canvas>
+				<!--#endif-->
+				<!--#ifndef MP-ALIPAY -->
+				<canvas canvas-id="canvasPie" id="canvasPie" class="charts" @touchstart="touchPie"></canvas>
+				<!--#endif-->
+			</view>
 		</view>
-		<view class="qiun-charts">
-			<!--#ifdef MP-ALIPAY -->
-			<canvas canvas-id="canvasPie" id="canvasPie" class="charts" :width="cWidth*pixelRatio" :height="cHeight*pixelRatio"
-			 :style="{'width':cWidth+'px','height':cHeight+'px'}" @touchstart="touchPie"></canvas>
-			<!--#endif-->
-			<!--#ifndef MP-ALIPAY -->
-			<canvas canvas-id="canvasPie" id="canvasPie" class="charts" @touchstart="touchPie"></canvas>
-			<!--#endif-->
+		<view v-if="tabCur==1">
+			<view class="qiun-bg-white qiun-title-bar qiun-common-mt" style="width: 100%;">
+				<view class="qiun-title-dot-light">月统计情况:总收入:{{incomeSum}}元</view>
+			</view>
+			<view class="qiun-charts">
+				<!--#ifdef MP-ALIPAY -->
+				<canvas canvas-id="incomeCanvasPie" id="incomeCanvasPie" class="charts" :width="cWidth*pixelRatio" :height="cHeight*pixelRatio"
+				 :style="{'width':cWidth+'px','height':cHeight+'px'}" @touchstart="touchIncomeCanvasPie"></canvas>
+				<!--#endif-->
+				<!--#ifndef MP-ALIPAY -->
+				<canvas canvas-id="incomeCanvasPie" id="incomeCanvasPie" class="charts" @touchstart="touchIncomeCanvasPie"></canvas>
+				<!--#endif-->
+			</view>
 		</view>
+
 		<!-- 	<view>
 			<button class="cu-btn round bg-gradual-blue" @click="getServerData">刷新</button>
 		</view> -->
@@ -53,6 +80,7 @@
 	var _self;
 	let canvaPie = null; //月统计
 	let dayPie = null; //日统计
+	let incomeCanvasPie = null //月收入统计
 
 	export default {
 		data() {
@@ -63,8 +91,10 @@
 				dayTextarea: '',
 				expenditureSum: 0, //总支出
 				daySum: 0, //日总支出
+				incomeSum: 0, //月总收入
 				date: '',
 				pixelRatio: 1,
+				tabCur: 0
 			}
 		},
 		onShow() {
@@ -117,16 +147,18 @@
 					let sum = 0; //总数
 					let typeMap = {};
 					dayRes.data.forEach((data) => {
-						let type = data['type'];
-						let money = new Number(data['money']);
-						let moneySum = typeMap[type];
-						if (moneySum == null || moneySum <= 0) {
-							moneySum = money;
-						} else {
-							moneySum += money;
+						if (data.mark == null || data.mark != 'income') {
+							let type = data['type'];
+							let money = new Number(data['money']);
+							let moneySum = typeMap[type];
+							if (moneySum == null || moneySum <= 0) {
+								moneySum = money;
+							} else {
+								moneySum += money;
+							}
+							sum += money;
+							typeMap[type] = moneySum;
 						}
-						sum += money;
-						typeMap[type] = moneySum;
 					});
 					for (let key in typeMap) {
 						let serie = {
@@ -138,9 +170,9 @@
 					_self.daySum = sum.toFixed(2);
 
 					Pie.series = series;
-					_self.textarea = JSON.stringify({
-						series: series
-					});
+					// _self.textarea = JSON.stringify({
+					// 	series: series
+					// });
 					_self.showPie("dayPie", Pie);
 
 				});
@@ -162,20 +194,34 @@
 					};
 					let series = [];
 
-					let sum = 0; //总数
+					let sum = 0; //支出总数
 					let typeMap = {};
+					let incomeTypeMap = {}; //收入分组
+					let incomeSum = 0; //收入总数
 					res.data.forEach((data) => {
 						let type = data['type'];
 						let money = new Number(data['money']);
-						let moneySum = typeMap[type];
-						if (moneySum == null || moneySum <= 0) {
-							moneySum = money;
+						if (data.mark != null && data.mark == 'income') {
+							let moneySum = incomeTypeMap[type];
+							if (moneySum == null || moneySum <= 0) {
+								moneySum = money;
+							} else {
+								moneySum += money;
+							}
+							incomeSum += money;
+							incomeTypeMap[type] = moneySum;
 						} else {
-							moneySum += money;
+							let moneySum = typeMap[type];
+							if (moneySum == null || moneySum <= 0) {
+								moneySum = money;
+							} else {
+								moneySum += money;
+							}
+							sum += money;
+							typeMap[type] = moneySum;
 						}
-						sum += money;
-						typeMap[type] = moneySum;
 					});
+					//月支出
 					for (let key in typeMap) {
 						let serie = {
 							name: key,
@@ -186,10 +232,35 @@
 					_self.expenditureSum = sum.toFixed(2);
 
 					Pie.series = series;
-					_self.textarea = JSON.stringify({
-						series: series
-					});
+					// _self.textarea = JSON.stringify({
+					// 	series: series
+					// });
+					_self.canvasPie = Pie;
 					_self.showPie("canvasPie", Pie);
+
+					series = [];
+					Pie = {
+						series: []
+					};
+					//月收入
+					for (let key in incomeTypeMap) {
+						let serie = {
+							name: key,
+							data: incomeTypeMap[key]
+						};
+						series.push(serie);
+					}
+					_self.incomeSum = incomeSum.toFixed(2);
+
+					Pie.series = series;
+
+					// _self.incomeTextarea = JSON.stringify({
+					// 	series: series
+					// });
+
+					_self.incomeCanvasPie = Pie;
+					_self.showPie("incomeCanvasPie", Pie);
+
 				});
 
 
@@ -251,9 +322,41 @@
 							}
 						},
 					});
+				} else if (canvasId == 'incomeCanvasPie') { //月收入统计
+					incomeCanvasPie = new uCharts({
+						$this: _self,
+						canvasId: canvasId,
+						type: 'pie',
+						fontSize: 11,
+						padding: [15, 15, 0, 15],
+						legend: {
+							show: true,
+							padding: 5,
+							lineHeight: 11,
+							margin: 0,
+						},
+						background: '#FFFFFF',
+						pixelRatio: _self.pixelRatio,
+						series: chartData.series,
+						animation: true,
+						width: _self.cWidth * _self.pixelRatio,
+						height: _self.cHeight * _self.pixelRatio,
+						dataLabel: true,
+						extra: {
+							pie: {
+								border: true,
+								borderColor: '#FFFFFF',
+								borderWidth: 3
+							}
+						},
+					});
 				}
 
 			},
+			/**
+			 * 月支出统计
+			 * @param {Object} e
+			 */
 			touchPie(e) {
 				canvaPie.showToolTip(e, {
 					format: function(item) {
@@ -264,6 +367,10 @@
 					animation: true
 				});
 			},
+			/**
+			 * 日支出统计
+			 * @param {Object} e
+			 */
 			touchDayPie(e) {
 				dayPie.showToolTip(e, {
 					format: function(item) {
@@ -274,6 +381,21 @@
 					animation: true
 				});
 			},
+			/**
+			 * 月收入统计
+			 * @param {Object} e
+			 */
+			touchIncomeCanvasPie(e) {
+				incomeCanvasPie.showToolTip(e, {
+					format: function(item) {
+						return item.name + ':' + item.data
+					}
+				});
+				incomeCanvasPie.touchLegend(e, {
+					animation: true
+				});
+			},
+
 
 			/**
 			 * 日期选择变更
@@ -282,7 +404,18 @@
 				_self.date = event.detail.value;
 				_self.getServerData();
 			},
-
+			/**
+			 * tab切换
+			 * @param {Object} e
+			 */
+			tabSelect(e) {
+				_self.tabCur = e.currentTarget.dataset.id;
+				if (_self.tabCur == 0 && _self.canvasPie != null) { //支出
+					_self.showPie("canvasPie", _self.canvasPie);
+				} else if (_self.tabCur == 1 && _self.incomeCanvasPie != null) { //收入
+					_self.showPie("incomeCanvasPie", _self.incomeCanvasPie);
+				}
+			},
 		}
 	}
 </script>

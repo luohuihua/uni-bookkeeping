@@ -2,10 +2,10 @@
 	<view>
 		<scroll-view scroll-x class="bg-yellow nav text-center">
 			<view class="cu-item" :class="0==tabCur?'text-white cur':''" @tap="tabSelect" data-id="0">
-				支出
+				<text class="cuIcon-triangleupfill"></text> 支出
 			</view>
 			<view class="cu-item" :class="1==tabCur?'text-white cur':''" @tap="tabSelect" data-id="1">
-				收入
+				<text class="cuIcon-triangledownfill"></text> 收入
 			</view>
 		</scroll-view>
 
@@ -29,13 +29,27 @@
 					</view>
 				</uni-grid-item>
 			</uni-grid>
-
-
-
-
 		</view>
+
 		<view v-if="tabCur==1">
-			功能开发中
+			<view class="cu-bar solid-bottom">
+				<view class="action">
+					<image :src="incomeIconList[incomeActiveIndex].url1" class="image" />
+					<text style="color:#1296db;" class="icon-item-text">{{ incomeIconList[incomeActiveIndex].text }}</text>
+					<view class="solid-bottom padding" style="position: absolute;right: 0;">
+						<text class="text-price">{{incomeMoney}}</text>
+					</view>
+				</view>
+			</view>
+			<uni-grid :column="5" :show-border="false" :square="true">
+				<uni-grid-item v-for="(item,index) in incomeIconList" :key="index">
+					<view class="grid-item-box" @click="switchActive(index)">
+						<!-- <uni-icons :type="item.name" :color="activeIndex === index?'#007aff':'#8f8f94'" size="25" /> -->
+						<image :src="incomeActiveIndex === index?item.url1:item.url" class="image" />
+						<text :style="{color:incomeActiveIndex === index?'#1296db':'#707070'}" class="icon-item-text">{{ item.text }}</text>
+					</view>
+				</uni-grid-item>
+			</uni-grid>
 		</view>
 
 
@@ -93,7 +107,8 @@
 			return {
 				option: {}, //参数
 				id: null,
-				money: '0.00', //金额
+				incomeMoney: '0.00', //收入金额
+				money: '0.00', //支出金额
 				numKeybordList: [
 					[1, 2, 3],
 					[4, 5, 6],
@@ -102,7 +117,25 @@
 				],
 				active: 1,
 				tabCur: 0,
+				incomeActiveIndex: 0,
 				activeIndex: 0,
+				incomeIconList: [{
+					url: '/static/bookeepingIcon/工资.png',
+					url1: '/static/bookeepingIcon/工资 (1).png',
+					text: '工资'
+				}, {
+					url: '/static/bookeepingIcon/兼职.png',
+					url1: '/static/bookeepingIcon/兼职 (1).png',
+					text: '炒更'
+				}, {
+					url: '/static/bookeepingIcon/奖金.png',
+					url1: '/static/bookeepingIcon/奖金 (1).png',
+					text: '奖金'
+				}, {
+					url: '/static/bookeepingIcon/投资.png',
+					url1: '/static/bookeepingIcon/投资 (1).png',
+					text: '投资'
+				}],
 				expenditureListIconList: [{
 						url: '/static/bookeepingIcon/吃喝.png',
 						url1: '/static/bookeepingIcon/吃喝 (1).png',
@@ -171,7 +204,11 @@
 			 * 完成
 			 */
 			confirm() {
-				let moneyNumber = new Number(_self.money);
+				let money = _self.money; //支出
+				if (_self.tabCur == 1) {
+					money = _self.incomeMoney; //收入
+				}
+				let moneyNumber = new Number(money);
 				if (moneyNumber <= 0) {
 					uni.showToast({
 						icon: "none",
@@ -179,7 +216,12 @@
 					});
 					return;
 				}
-				let expenditureListIcon = _self.expenditureListIconList[_self.activeIndex];
+				let expenditureListIcon = null;
+				if (_self.tabCur == 0) {
+					expenditureListIcon = _self.expenditureListIconList[_self.activeIndex];
+				} else if (_self.tabCur == 1) {
+					expenditureListIcon = _self.incomeIconList[_self.incomeActiveIndex];
+				}
 				let userInfo = getUserInfo();
 				callCloudFunction('money_add', {
 					id: _self.id == null ? '' : _self.id,
@@ -188,7 +230,8 @@
 					money: moneyNumber,
 					type: expenditureListIcon.text,
 					url: expenditureListIcon.url,
-					url1: expenditureListIcon.url1
+					url1: expenditureListIcon.url1,
+					mark: _self.tabCur == 1 ? 'income' : 'expenditure'
 				}, (res) => {
 					if (_self.id == null || _self.id == '') {
 						uni.showToast({
@@ -204,7 +247,12 @@
 						});
 						_self.id = null;
 					}
-					_self.money = '0.00';
+					if (_self.tabCur == 0) { //支出
+						_self.money = '0.00';
+					} else if (_self.tabCur == 1) { //收入
+						_self.incomeMoney = '0.00';
+					}
+
 				}, (fail) => {
 					uni.showToast({
 						icon: "none",
@@ -217,26 +265,50 @@
 			 * 删除
 			 */
 			deleteVal() {
-				if (_self.money != '0.00' && _self.money.length > 0)
-					_self.money = _self.money.substring(0, _self.money.length - 1)
-				if (_self.money.length <= 0)
-					_self.money = '0.00';
+				let money = _self.money; //支出
+				if (_self.tabCur == 1) {
+					money = _self.incomeMoney; //收入
+				}
+				if (money != '0.00' && money.length > 0)
+					money = money.substring(0, money.length - 1)
+				if (money.length <= 0)
+					money = '0.00';
+				//支出
+				if (_self.tabCur == 0) {
+					_self.money = money;
+				} else if (_self.tabCur == 1) { //收入
+					_self.incomeMoney = money;
+				}
 			},
 			/**
 			 * 按键
 			 * @param {Object}
 			 */
 			input(val) {
-				if (_self.money == '0.00' && val != null) {
-					_self.money = val.toString();
+				let money = _self.money; //支出
+				if (_self.tabCur == 1) {
+					money = _self.incomeMoney; //收入
+				}
+				if (money == '0.00' && val != null) {
+					money = val.toString();
 				} else {
-					let arr = _self.money.split('.');
+					let arr = money.split('.');
 					if (val == '.' && arr.length > 1) {
 
 					} else if (arr.length <= 1 || (arr.length > 1 && arr[1].length <= 1)) {
-						_self.money += val;
+						if (money == '0' && val != '.') {
+							money = val.toString();
+						} else if (money != '0' || val != '0')
+							money += val;
 					}
 				}
+				//支出
+				if (_self.tabCur == 0) {
+					_self.money = money;
+				} else if (_self.tabCur == 1) { //收入
+					_self.incomeMoney = money;
+				}
+
 			},
 			/**
 			 * tab切换
@@ -251,7 +323,11 @@
 			 * @param {Object} index
 			 */
 			switchActive(index) {
-				_self.activeIndex = index;
+				if (_self.tabCur == 1) {
+					_self.incomeActiveIndex = index;
+				} else if (_self.tabCur == 0) {
+					_self.activeIndex = index;
+				}
 			},
 		},
 		onLoad(option) {
@@ -271,14 +347,31 @@
 			let modifyDetailed = uni.getStorageSync('modifyDetailed');
 			if (modifyDetailed != null && modifyDetailed._id != null) {
 				_self.id = modifyDetailed._id;
-				_self.money = modifyDetailed.money.toString();
+				if (modifyDetailed.mark != null && modifyDetailed.mark == 'income') {
+					_self.tabCur = 1;
+				} else {
+					_self.tabCur = 0;
+				}
+				if (_self.tabCur == 0) { //支出
+					_self.money = modifyDetailed.money.toString();
+				} else if (_self.tabCur == 1) { //收入
+					_self.incomeMoney = modifyDetailed.money.toString();
+				}
 				let type = modifyDetailed.type;
 				let activeIndex = 0;
-				_self.expenditureListIconList.forEach((item, index) => {
+				let list = _self.expenditureListIconList;
+				if (_self.tabCur == 1) {
+					list = _self.incomeIconList;
+				}
+				list.forEach((item, index) => {
 					if (type == item.text)
 						activeIndex = index;
 				});
-				_self.activeIndex = activeIndex;
+				if (_self.tabCur == 0) { //支出
+					_self.activeIndex = activeIndex;
+				} else if (_self.tabCur == 1) { //收入
+					_self.incomeActiveIndex = activeIndex;
+				}
 			} else {
 				_self.id = null;
 				_self.money = '0.00';

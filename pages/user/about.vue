@@ -1,14 +1,14 @@
 <template>
 
-	<view class="padding radius text-left shadow-blur bg-black" style="padding-top: 10px;padding-left: 10px;">
-		<view class="text-lg">姓名:罗先生</view>
-		<!-- <view class="text-lg">电话:13537927121</view> -->
-		<view class="text-lg">邮箱:295228341@qq.com</view>
-		<!-- <view class="margin-top-sm text-Abc">电话:13537927121</view> -->
-		<!-- <image class="logo-img" mode="aspectFit" src="/static/wx.png"></image> -->
+	<view class="qiun-columns">
+		<view class="qiun-bg-white qiun-title-bar qiun-common-mt" style="width: 100%;">
+			<view class="qiun-title-dot-light">联系人:罗先生</view>
+		</view>
+		<view class="qiun-bg-white qiun-title-bar qiun-common-mt" style="width: 100%;">
+			<view class="qiun-title-dot-light" @click="copyText('295228341@qq.com')">邮箱:295228341@qq.com</view>
+		</view>
+		<image class="logo-img" style="padding-top: 20px;" mode="aspectFit" @click="copyText('13537927121')" src="/static/wx.png"></image>
 	</view>
-
-
 </template>
 
 <script>
@@ -22,6 +22,16 @@
 
 		},
 		methods: {
+			copyText(text) {
+				uni.setClipboardData({
+					data: text,
+					success: function() {
+						uni.showToast({
+							title: '复制成功'
+						})
+					}
+				});
+			}
 
 		}
 	}
