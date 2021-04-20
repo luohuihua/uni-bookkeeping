@@ -8,6 +8,7 @@
 ## manifest.json   基础配置：重新获取appid  微信小程序配置：需要修改为自己的appid
 ## cloudfunctions-aliyun/get_openid/index.js   需要修改appid,secret，用于获取微信的唯一标记
 
+### [我的插件列表](https://ext.dcloud.net.cn/publisher?id=203909)
 
 ## 小程序码
 ![image](static/小程序演示码.jpg)
